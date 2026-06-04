@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: meridian-static-app-service
+  namespace: meridian-devsecops
+  labels:
+    app: meridian-static-app
+spec:
+  type: ClusterIP
+  selector:
+    app: meridian-static-app
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

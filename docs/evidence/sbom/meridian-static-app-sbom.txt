@@ -1,0 +1,3 @@
+NAME                    VERSION    TYPE       
+command-line-arguments  UNKNOWN    go-module  
+stdlib                  go1.25.11  go-module
