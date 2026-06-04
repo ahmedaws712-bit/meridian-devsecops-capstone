@@ -1,0 +1,28 @@
+{
+  "resources": [
+    {
+      "name": "aws-static-assets",
+      "cloud": "aws",
+      "type": "storage",
+      "encrypted": true,
+      "public": false,
+      "tags": {
+        "Project": "meridian-devsecops",
+        "Environment": "dev",
+        "Owner": "cloud-capstone"
+      }
+    },
+    {
+      "name": "azure-static-assets",
+      "cloud": "azure",
+      "type": "storage",
+      "encrypted": true,
+      "public": false,
+      "tags": {
+        "project": "meridiandevsecops",
+        "environment": "dev",
+        "owner": "cloud-capstone"
+      }
+    }
+  ]
+}

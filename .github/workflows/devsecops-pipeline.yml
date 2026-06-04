@@ -1,0 +1,102 @@
+name: DevSecOps Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  devsecops-security-gates:
+    name: DevSecOps Security Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate static app files
+        run: |
+          test -f app/index.html
+          test -f app/styles.css
+          test -f app/app.js
+          echo "Static application files exist."
+
+      - name: Secrets scan with GitLeaks
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks:latest \
+            detect --source="/repo" --no-git --redact --verbose
+
+      - name: SAST scan with Semgrep
+        run: |
+          docker run --rm \
+            -v "$PWD:/src" \
+            returntocorp/semgrep:latest \
+            semgrep scan --config=p/owasp-top-ten --error /src/app
+
+      - name: IaC scan with Checkov
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            bridgecrew/checkov:latest \
+            -d /repo/infra \
+            --framework terraform
+
+      - name: IaC scan with Terrascan - AWS
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            tenable/terrascan:latest \
+            scan -d /repo/infra/aws -i terraform -t aws
+
+      - name: IaC scan with Terrascan - Azure
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            tenable/terrascan:latest \
+            scan -d /repo/infra/azure -i terraform -t azure
+
+      - name: OPA policy check
+        run: |
+          VIOLATIONS=$(docker run --rm \
+            -v "$PWD:/repo" \
+            openpolicyagent/opa:latest \
+            eval \
+            --format raw \
+            -d /repo/policies/opa/security.rego \
+            -i /repo/policies/input/resources.json \
+            "count(data.capstone.security.deny)")
+
+          echo "OPA violations: $VIOLATIONS"
+
+          if [ "$VIOLATIONS" != "0" ]; then
+            docker run --rm \
+              -v "$PWD:/repo" \
+              openpolicyagent/opa:latest \
+              eval \
+              --format pretty \
+              -d /repo/policies/opa/security.rego \
+              -i /repo/policies/input/resources.json \
+              "data.capstone.security.deny"
+
+            exit 1
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build -t meridian-static-app:ci .
+
+      - name: Container scan with Trivy
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest \
+            image \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 \
+            meridian-static-app:ci

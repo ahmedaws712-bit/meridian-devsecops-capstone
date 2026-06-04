@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Meridian Retail Group</title>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav class="navbar">
+      <div class="logo">Meridian Retail Group</div>
+      <div class="nav-links">
+        <a href="#orders">Orders</a>
+        <a href="#security">Security</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </nav>
+
+    <section class="hero-content">
+      <h1>Secure Order Management Platform</h1>
+      <p>
+        A cloud-native demo application protected by an automated DevSecOps pipeline
+        across AWS and Azure.
+      </p>
+      <button id="statusButton">Check Platform Status</button>
+      <p id="statusMessage" class="status-message"></p>
+    </section>
+  </header>
+
+  <main>
+    <section id="orders" class="card-section">
+      <div class="card">
+        <h2>Order Processing</h2>
+        <p>Track, validate, and process customer orders securely.</p>
+      </div>
+
+      <div class="card">
+        <h2>Cloud Agnostic</h2>
+        <p>Infrastructure security checks run consistently for AWS and Azure.</p>
+      </div>
+
+      <div class="card">
+        <h2>Shift-Left Security</h2>
+        <p>Security controls are executed before deployment using automated gates.</p>
+      </div>
+    </section>
+
+    <section id="security" class="security-section">
+      <h2>Security Controls</h2>
+      <ul>
+        <li>Infrastructure-as-Code scanning</li>
+        <li>Static application security testing</li>
+        <li>Secrets detection</li>
+        <li>Policy-as-code validation</li>
+        <li>Container image scanning</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer id="contact">
+    <p>Meridian Retail Group &copy; 2026</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
