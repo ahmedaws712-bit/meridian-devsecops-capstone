@@ -62,3 +62,10 @@ resource "azurerm_storage_account" "static_assets" {
 
   tags = local.common_tags
 }
+
+resource "azurerm_management_lock" "resource_group_delete_lock" {
+  name       = "lock-${var.project_name}-${var.environment}"
+  scope      = azurerm_resource_group.main.id
+  lock_level = "CanNotDelete"
+  notes      = "Prevents accidental deletion of the capstone resource group."
+}
