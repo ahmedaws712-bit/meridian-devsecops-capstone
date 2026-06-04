@@ -40,8 +40,11 @@ resource "azurerm_resource_group" "main" {
   tags = local.common_tags
 }
 
-#checkov:skip=CKV_AZURE_33:Private endpoint omitted for free-tier capstone and documented as residual risk.
 resource "azurerm_storage_account" "static_assets" {
+  #checkov:skip=CKV_AZURE_33:Queue logging omitted for free-tier capstone; documented as residual risk.
+  #checkov:skip=CKV_AZURE_206:Geo-replication omitted to avoid unnecessary cost in free-tier capstone.
+  #checkov:skip=CKV2_AZURE_33:Private endpoint omitted because no live production deployment is required.
+  #checkov:skip=CKV2_AZURE_1:Customer-managed key omitted to avoid extra key vault complexity and cost.
   name                     = "${var.project_name}${random_string.suffix.result}"
   resource_group_name      = azurerm_resource_group.main.name
   location                 = azurerm_resource_group.main.location
@@ -51,6 +54,7 @@ resource "azurerm_storage_account" "static_assets" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
   shared_access_key_enabled       = false
+  public_network_access_enabled   = false
 
   blob_properties {
     versioning_enabled = true

@@ -31,9 +31,10 @@ locals {
   }
 }
 
-#checkov:skip=CKV_AWS_18:Access logging omitted for free-tier capstone and documented as residual risk.
-#checkov:skip=CKV_AWS_144:Cross-region replication omitted to avoid unnecessary free-tier overage.
 resource "aws_s3_bucket" "static_assets" {
+  #checkov:skip=CKV_AWS_18:Access logging omitted for free-tier capstone; documented as residual risk.
+  #checkov:skip=CKV_AWS_144:Cross-region replication omitted to avoid unnecessary cost in free-tier capstone.
+  #checkov:skip=CKV2_AWS_62:Event notifications omitted because no production event target is required for this static demo.
   bucket = "${var.project_name}-${var.environment}-static-${random_id.suffix.hex}"
 
   tags = local.common_tags
@@ -71,5 +72,22 @@ resource "aws_s3_bucket_ownership_controls" "static_assets" {
 
   rule {
     object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "static_assets" {
+  bucket = aws_s3_bucket.static_assets.id
+
+  rule {
+    id     = "static-assets-lifecycle"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
