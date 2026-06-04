@@ -1,0 +1,39 @@
+{
+  "pipeline": {
+    "branch_protection_enabled": true,
+    "secrets_scan_enabled": true,
+    "sast_enabled": true,
+    "iac_scan_enabled": true,
+    "container_scan_enabled": true,
+    "dast_enabled": true,
+    "sbom_enabled": true
+  },
+  "infrastructure": {
+    "aws": {
+      "encryption_enabled": true,
+      "public_access_blocked": true,
+      "versioning_enabled": true
+    },
+    "azure": {
+      "tls_minimum_version": "TLS1_2",
+      "public_access_disabled": true,
+      "shared_key_disabled": true
+    }
+  },
+  "container": {
+    "runs_as_non_root": true,
+    "uses_minimal_runtime": true,
+    "high_or_critical_vulnerabilities_allowed": false
+  },
+  "kubernetes": {
+    "non_root_enabled": true,
+    "privilege_escalation_disabled": true,
+    "read_only_root_filesystem": true,
+    "network_policy_enabled": true,
+    "service_account_token_disabled": true
+  },
+  "runtime_security": {
+    "falco_enabled": true,
+    "custom_runtime_rules_enabled": true
+  }
+}

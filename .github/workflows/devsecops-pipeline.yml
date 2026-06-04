@@ -89,6 +89,32 @@ jobs:
             exit 1
           fi
 
+      - name: Compliance policy check with OPA
+        run: |
+          COMPLIANCE_VIOLATIONS=$(docker run --rm \
+            -v "$PWD:/repo" \
+            openpolicyagent/opa:latest \
+            eval \
+            --format raw \
+            -d /repo/policies/compliance/compliance.rego \
+            -i /repo/policies/compliance/compliance-input.json \
+            "count(data.capstone.compliance.deny)")
+
+          echo "Compliance violations: $COMPLIANCE_VIOLATIONS"
+
+          if [ "$COMPLIANCE_VIOLATIONS" != "0" ]; then
+            docker run --rm \
+              -v "$PWD:/repo" \
+              openpolicyagent/opa:latest \
+              eval \
+              --format pretty \
+              -d /repo/policies/compliance/compliance.rego \
+              -i /repo/policies/compliance/compliance-input.json \
+              "data.capstone.compliance.deny"
+
+            exit 1
+          fi
+
       - name: Build Docker image
         run: |
           docker build -t meridian-static-app:ci .
