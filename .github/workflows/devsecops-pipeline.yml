@@ -35,7 +35,7 @@ jobs:
         run: |
           docker run --rm \
             -v "$PWD:/src" \
-            returntocorp/semgrep:latest \
+            semgrep/semgrep:latest \
             semgrep scan --config=p/owasp-top-ten --error /src/app
 
       - name: IaC scan with Checkov
@@ -100,3 +100,45 @@ jobs:
             --ignore-unfixed \
             --exit-code 1 \
             meridian-static-app:ci
+
+      - name: Create local test network
+        run: |
+          docker network create capstone-net
+
+      - name: Deploy app to local test target
+        run: |
+          docker run -d \
+            --name meridian-static-app-container \
+            --network capstone-net \
+            meridian-static-app:ci
+
+          sleep 5
+          docker ps
+
+      - name: DAST scan with OWASP ZAP
+        run: |
+          mkdir -p zap-reports
+
+          docker run --rm \
+            --network capstone-net \
+            -v "$PWD/zap-reports:/zap/wrk/:rw" \
+            zaproxy/zap-stable \
+            zap-baseline.py \
+            -t http://meridian-static-app-container:8080 \
+            -r zap-baseline-report.html \
+            -J zap-baseline-report.json \
+            -w zap-baseline-report.md \
+            -I
+
+      - name: Upload ZAP DAST report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-dast-report
+          path: zap-reports/
+
+      - name: Clean up local test target
+        if: always()
+        run: |
+          docker rm -f meridian-static-app-container || true
+          docker network rm capstone-net || true
