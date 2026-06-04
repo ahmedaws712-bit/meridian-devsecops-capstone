@@ -104,6 +104,31 @@ jobs:
             --exit-code 1 \
             meridian-static-app:ci
 
+      - name: Generate SBOM with Syft
+        run: |
+          mkdir -p sbom-reports
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD/sbom-reports:/sbom" \
+            anchore/syft:latest \
+            meridian-static-app:ci \
+            -o spdx-json=/sbom/meridian-static-app-sbom.spdx.json
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            anchore/syft:latest \
+            meridian-static-app:ci \
+            -o table \
+            > sbom-reports/meridian-static-app-sbom.txt
+
+      - name: Upload SBOM report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sbom-report
+          path: sbom-reports/
+
       - name: Create local test network
         run: |
           docker network create capstone-net
