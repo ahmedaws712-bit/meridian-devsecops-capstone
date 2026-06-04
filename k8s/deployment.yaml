@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meridian-static-app
+  namespace: meridian-devsecops
+  labels:
+    app: meridian-static-app
+  annotations:
+    checkov.io/skip1: CKV_K8S_15=ImagePullPolicy IfNotPresent is used because this capstone runs a locally built image in kind/minikube.
+    checkov.io/skip2: CKV_K8S_43=Image digest pinning is documented as a production control; local image is used for free-tier lab execution.
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meridian-static-app
+  template:
+    metadata:
+      labels:
+        app: meridian-static-app
+    spec:
+      serviceAccountName: meridian-app-sa
+      automountServiceAccountToken: false
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: meridian-static-app
+          image: meridian-static-app:local
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
